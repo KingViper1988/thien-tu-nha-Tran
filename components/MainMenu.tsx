@@ -1,17 +1,19 @@
 
 import React from 'react';
-import { FlourishIcon, QuestionMarkCircleIcon, GiftIcon, SunIcon, MoonIcon } from '../constants';
+import { FlourishIcon, QuestionMarkCircleIcon, GiftIcon, SunIcon, MoonIcon, KeyIcon } from '../constants';
 
 interface MainMenuProps {
     onNewGame: () => void;
     onLoadGame: () => void;
     onShowTutorial: () => void;
     onShowDonate: () => void;
+    onShowApiKeySetup: () => void;
     toggleDarkMode: () => void;
     isDarkMode: boolean;
+    apiKey: string | null;
 }
 
-const MainMenu: React.FC<MainMenuProps> = ({ onNewGame, onLoadGame, onShowTutorial, onShowDonate, toggleDarkMode, isDarkMode }) => {
+const MainMenu: React.FC<MainMenuProps> = ({ onNewGame, onLoadGame, onShowTutorial, onShowDonate, onShowApiKeySetup, toggleDarkMode, isDarkMode, apiKey }) => {
     return (
         <div className="flex flex-col items-center justify-center min-h-[80vh] text-center animate-fade-in">
             <div className="absolute top-4 right-4 md:top-8 md:right-8">
@@ -35,7 +37,9 @@ const MainMenu: React.FC<MainMenuProps> = ({ onNewGame, onLoadGame, onShowTutori
             <div className="space-y-4 w-full max-w-sm">
                 <button
                     onClick={onNewGame}
-                    className="w-full bg-red-800 hover:bg-red-700 dark:bg-amber-600 dark:hover:bg-amber-500 text-yellow-50 dark:text-red-950 font-bold py-4 px-6 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 text-xl font-serif-display tracking-wide"
+                    disabled={!apiKey}
+                    className="w-full bg-red-800 hover:bg-red-700 dark:bg-amber-600 dark:hover:bg-amber-500 text-yellow-50 dark:text-red-950 font-bold py-4 px-6 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 text-xl font-serif-display tracking-wide disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+                    title={!apiKey ? "Vui lòng thiết lập API Key trước" : "Bắt đầu một ván chơi mới"}
                 >
                     Bắt đầu (New Game)
                 </button>
@@ -45,17 +49,24 @@ const MainMenu: React.FC<MainMenuProps> = ({ onNewGame, onLoadGame, onShowTutori
                 >
                     Tải Game (Load Game)
                 </button>
-                <div className="flex gap-4 pt-4">
+                <div className="grid grid-cols-3 gap-4 pt-4">
+                     <button
+                        onClick={onShowApiKeySetup}
+                        className="bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                        <KeyIcon className="w-5 h-5"/>
+                        API Key
+                    </button>
                     <button
                         onClick={onShowTutorial}
-                        className="flex-1 bg-sky-600 hover:bg-sky-700 dark:bg-sky-700 dark:hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 flex items-center justify-center gap-2"
+                        className="bg-sky-600 hover:bg-sky-700 dark:bg-sky-700 dark:hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 flex items-center justify-center gap-2"
                     >
                         <QuestionMarkCircleIcon className="w-5 h-5"/>
                         Hướng Dẫn
                     </button>
                     <button
                         onClick={onShowDonate}
-                        className="flex-1 bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 flex items-center justify-center gap-2"
+                        className="bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 flex items-center justify-center gap-2"
                     >
                         <GiftIcon className="w-5 h-5"/>
                         Ủng hộ

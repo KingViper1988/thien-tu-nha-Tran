@@ -121,7 +121,7 @@ export type BudgetAllocations = {
 
 export type GamePhase = 'BUDGETING' | 'COURT_SESSION' | 'YEAR_END' | 'GAME_OVER';
 
-export type ActiveModal = 'relationships' | 'harem' | 'aids' | 'military' | 'succession' | 'diplomacy' | 'tutorial' | 'donate' | null;
+export type ActiveModal = 'relationships' | 'harem' | 'aids' | 'military' | 'succession' | 'diplomacy' | 'tutorial' | 'donate' | 'apiKey' | null;
 
 
 export interface SaveState {

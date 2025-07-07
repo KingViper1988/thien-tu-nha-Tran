@@ -1,12 +1,18 @@
 
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
-// Ensure the API key is available as an environment variable
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set.");
-}
+const getAiClient = (): GoogleGenAI => {
+    // Retrieve the API key from the browser's local storage.
+    const apiKey = typeof window !== 'undefined' ? window.localStorage.getItem('gemini_api_key') : null;
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    if (!apiKey) {
+        throw new Error("API key not found in localStorage. Please set it in the main menu.");
+    }
+    
+    // Create a new client instance with the provided key.
+    return new GoogleGenAI({ apiKey });
+};
+
 
 /**
  * Generates a yearly summary using the Gemini API.
@@ -15,7 +21,8 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
  */
 export const generateYearlySummary = async (prompt: string): Promise<string> => {
     try {
-        const response: GenerateContentResponse = await ai.models.generateContent({
+        const client = getAiClient();
+        const response: GenerateContentResponse = await client.models.generateContent({
             model: "gemini-2.5-flash-preview-04-17",
             contents: prompt,
             config: {
@@ -29,8 +36,14 @@ export const generateYearlySummary = async (prompt: string): Promise<string> => 
         // The .text property directly gives the string output
         return response.text;
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Gemini API call failed:", error);
+        if (error.message.includes("API key not found")) {
+            return "Tâu bệ hạ, ấn tín của Sử quan (API Key) đã thất lạc. Xin hãy vào mục 'Thiết lập API Key' ở menu chính để thiết lập lại.";
+        }
+        if (error.message.includes("API key not valid")) {
+             return "Tâu bệ hạ, ấn tín của Sử quan (API Key) không hợp lệ. Xin hãy kiểm tra lại.";
+        }
         // Provide a user-friendly error message in the game's theme
         return "Tâu bệ hạ, thiên tượng bất thường, thần không thể tiên đoán hay ghi chép lại sự kiện. (A celestial anomaly prevents the scribes from recording the events.)";
     }

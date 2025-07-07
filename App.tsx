@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { INITIAL_STATS, INITIAL_PETITIONS, INITIAL_OFFICIALS, INITIAL_HAREM, INITIAL_MILITARY, INITIAL_PRINCES, INITIAL_DIPLOMACY, MONGOL_INVASIONS, FlourishIcon, UsersIcon, HeartIcon, SparklesIcon, ShieldCheckIcon, UserGroupIcon, GlobeAltIcon, QuestionMarkCircleIcon, GiftIcon, SunIcon, MoonIcon } from './constants';
+import { INITIAL_STATS, INITIAL_PETITIONS, INITIAL_OFFICIALS, INITIAL_HAREM, INITIAL_MILITARY, INITIAL_PRINCES, INITIAL_DIPLOMACY, MONGOL_INVASIONS, FlourishIcon, UsersIcon, HeartIcon, SparklesIcon, ShieldCheckIcon, UserGroupIcon, GlobeAltIcon, QuestionMarkCircleIcon, GiftIcon, SunIcon, MoonIcon, KeyIcon } from './constants';
 import type { NationalStat, Stats, Petition, PetitionOption, Official, SaveState, GamePhase, BudgetAllocations, Consort, AidType, Military, Prince, Diplomacy, ActiveModal, NeighboringState as TNeighboringState } from './types';
 import { NationalStat as ENationalStat, Ministry, NeighboringState } from './types';
 import Dashboard from './components/Dashboard';
@@ -18,6 +18,7 @@ import TutorialPanel from './components/TutorialPanel';
 import DonationPanel from './components/DonationPanel';
 import InvasionCountdown from './components/InvasionCountdown';
 import MainMenu from './components/MainMenu';
+import ApiKeySetupModal from './components/ApiKeySetupModal';
 import { generateYearlySummary } from './services/geminiService';
 
 const YearlyAnnals = ({ summary, onNewYear }: { summary: string; onNewYear: () => void; }) => (
@@ -75,6 +76,12 @@ const App: React.FC = () => {
         return false;
     });
     const [gameStarted, setGameStarted] = useState(false);
+    const [apiKey, setApiKey] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') {
+            return window.localStorage.getItem('gemini_api_key');
+        }
+        return null;
+    });
 
     useEffect(() => {
         if (isDarkMode) {
@@ -87,6 +94,15 @@ const App: React.FC = () => {
     }, [isDarkMode]);
 
     const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+
+    const handleApiKeyUpdate = (newKey: string | null) => {
+        if (newKey) {
+            localStorage.setItem('gemini_api_key', newKey);
+        } else {
+            localStorage.removeItem('gemini_api_key');
+        }
+        setApiKey(newKey);
+    };
 
     const getAvailablePetitions = useCallback(() => {
         return shuffleArray(
@@ -515,6 +531,7 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
             case 'aids': return <AidsPanel usedAids={usedAids} onUseAid={handleUseAid} />;
             case 'tutorial': return <TutorialPanel />;
             case 'donate': return <DonationPanel />;
+            case 'apiKey': return <ApiKeySetupModal currentKey={apiKey} onKeyUpdate={handleApiKeyUpdate} onClose={() => setActiveModal(null)} />;
             default: return null;
         }
     };
@@ -529,6 +546,7 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
             case 'aids': return "Quyền Trợ Giúp (Emergency Aid)";
             case 'tutorial': return "Hướng Dẫn Chơi";
             case 'donate': return "Ủng Hộ Tác Giả";
+            case 'apiKey': return "Thiết lập API Key";
             default: return "";
         }
     };
@@ -556,8 +574,10 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
                         onLoadGame={triggerLoadGame}
                         onShowTutorial={() => setActiveModal('tutorial')}
                         onShowDonate={() => setActiveModal('donate')}
+                        onShowApiKeySetup={() => setActiveModal('apiKey')}
                         toggleDarkMode={toggleDarkMode}
                         isDarkMode={isDarkMode}
+                        apiKey={apiKey}
                     />
                 ) : (
                     <>

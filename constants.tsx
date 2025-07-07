@@ -124,6 +124,12 @@ export const CloseIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
 );
+export const KeyIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <DuotoneIcon {...props}>
+        <path d="M15.75 5.25a3 3 0 0 1 3 3m3 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" className="text-gray-400 dark:text-gray-500 opacity-70" />
+        <path d="M15.75 5.25a3 3 0 0 0-3-3M15.75 5.25v3.75m-3.75-3.75h3.75m-3.75 0a3 3 0 0 0-5.69 1.458L6.208 9.75a.75.75 0 0 0 .658 1.042l.39.065a3 3 0 0 1 2.33 2.33l.065.39a.75.75 0 0 0 1.042.658l2.542-.424a3 3 0 0 0 1.458-5.69Z" className="text-gray-600 dark:text-gray-300" />
+    </DuotoneIcon>
+);
 
 
 // INITIAL GAME STATE
