@@ -17,6 +17,7 @@ import DiplomacyPanel from './components/DiplomacyPanel';
 import TutorialPanel from './components/TutorialPanel';
 import DonationPanel from './components/DonationPanel';
 import InvasionCountdown from './components/InvasionCountdown';
+import MainMenu from './components/MainMenu';
 import { generateYearlySummary } from './services/geminiService';
 
 const YearlyAnnals = ({ summary, onNewYear }: { summary: string; onNewYear: () => void; }) => (
@@ -73,6 +74,7 @@ const App: React.FC = () => {
         }
         return false;
     });
+    const [gameStarted, setGameStarted] = useState(false);
 
     useEffect(() => {
         if (isDarkMode) {
@@ -171,7 +173,7 @@ const App: React.FC = () => {
         }
     }, [stats, officials, year, gamePhase, military.strength, nextMongolInvasionYear]);
 
-    const handleRestart = useCallback(() => {
+    const resetGameState = useCallback(() => {
         setYear(1225);
         setStats(INITIAL_STATS);
         setOfficials(INITIAL_OFFICIALS);
@@ -193,6 +195,16 @@ const App: React.FC = () => {
         setActiveModal(null);
         setUsedAids([]);
     }, []);
+
+    const handleNewGame = useCallback(() => {
+        resetGameState();
+        setGameStarted(true);
+    }, [resetGameState]);
+
+    const handleRestart = useCallback(() => {
+        resetGameState();
+        setGameStarted(false);
+    }, [resetGameState]);
 
     const handleDecision = useCallback((option: PetitionOption, petitionTitle: string) => {
         // Update national stats
@@ -477,7 +489,8 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
                     setNextMongolInvasionYear(savedState.nextMongolInvasionYear !== undefined ? savedState.nextMongolInvasionYear : MONGOL_INVASIONS[0]);
                     setYearlySummary(null);
                     setIsEndingYear(false);
-                     alert(`Đã tải thành công ván chơi từ năm ${savedState.year}.`);
+                    setGameStarted(true);
+                    alert(`Đã tải thành công ván chơi từ năm ${savedState.year}.`);
                 } else {
                     alert("Tệp lưu không hợp lệ. (Invalid save file.)");
                 }
@@ -537,81 +550,95 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
     return (
         <div className="min-h-screen bg-fixed" style={{ backgroundImage: `url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M11 18.273l8.445 8.445L11 35.164V18.273zm35.164 16.891L37.719 26.72l8.445-8.446v16.892zM19.445 26.719L27.89 18.27l-8.445-8.445v16.89zM11 51.547l8.445 8.445L11 68.438V51.547zm35.164 16.891L37.719 60l8.445-8.446v16.892zM19.445 60l8.445-8.445-8.445-8.445v16.89zM11 84.81l8.445 8.445L11 101.7V84.81zm35.164 16.891L37.719 93.25l8.445-8.446v16.892zM19.445 93.25l8.445-8.445-8.445-8.445v16.89zM53.72 11l8.445 8.445L53.72 27.89V11zm35.164 16.891L80.44 19.445l8.445-8.446v16.892zM62.164 19.445L70.61 11l-8.445-8.445v16.89zM53.72 44.27l8.445 8.445-8.445 8.446V44.27zm35.164 16.891L80.44 52.715l8.445-8.446v16.892zM62.164 52.715l8.445-8.445-8.445-8.445v16.89zM53.72 77.54l8.445 8.445-8.445 8.446V77.54zm35.164 16.891L80.44 86l8.445-8.446v16.892zM62.164 86l8.445-8.445-8.445-8.445v16.89z" fill="${isDarkMode ? '%23fde68a' : '%239a3412'}" fill-opacity="${isDarkMode ? '0.03' : '0.05'}" fill-rule="evenodd"/></svg>')`}}>
             <main className="container mx-auto p-4 md:p-8">
-                <header className="text-center mb-8">
-                    <div className="flex justify-center items-center gap-4">
-                       <FlourishIcon className="w-12 h-12 text-red-900 dark:text-amber-300"/>
-                       <h1 className="text-4xl md:text-5xl font-extrabold font-serif-display text-red-900/90 dark:text-amber-200/90 tracking-wider">Thiên Tử Nhà Trần</h1>
-                       <FlourishIcon className="w-12 h-12 text-red-900 dark:text-amber-300 scale-x-[-1]"/>
-                    </div>
-                    <div className="flex items-center justify-center gap-4">
-                        <p className="text-stone-600 dark:text-stone-400 font-semibold text-lg mt-2">Năm {year}</p>
-                        <InvasionCountdown currentYear={year} nextInvasionYear={nextMongolInvasionYear} />
-                    </div>
-                    <div className="flex justify-center items-center gap-2 md:gap-4 mt-4 flex-wrap">
-                        <button onClick={saveGame} disabled={gamePhase === 'GAME_OVER'} className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 text-sm disabled:bg-stone-400 dark:disabled:bg-stone-600 dark:disabled:text-stone-400 disabled:cursor-not-allowed dark:bg-amber-700 dark:hover:bg-amber-800">Lưu Game</button>
-                        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" style={{ display: 'none' }} />
-                        <button onClick={triggerLoadGame} disabled={gamePhase === 'GAME_OVER'} className="bg-stone-600 hover:bg-stone-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 text-sm disabled:bg-stone-400 dark:disabled:bg-stone-600 dark:disabled:text-stone-400 disabled:cursor-not-allowed dark:bg-stone-700 dark:hover:bg-stone-800">Tải Game</button>
-                        <button onClick={() => setActiveModal('tutorial')} className="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 text-sm flex items-center gap-2 dark:bg-sky-700 dark:hover:bg-sky-600">
-                          <QuestionMarkCircleIcon className="w-5 h-5"/>
-                          <span className="hidden sm:inline">Hướng Dẫn</span>
-                        </button>
-                        <button onClick={() => setActiveModal('donate')} className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 text-sm flex items-center gap-2 dark:bg-amber-600 dark:hover:bg-amber-500">
-                           <GiftIcon className="w-5 h-5"/>
-                           <span className="hidden sm:inline">Ủng hộ</span>
-                        </button>
-                         <button onClick={toggleDarkMode} className="bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-200 font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 text-sm flex items-center gap-2">
-                           {isDarkMode ? <SunIcon className="w-5 h-5 text-yellow-400"/> : <MoonIcon className="w-5 h-5 text-indigo-500"/>}
-                           <span className="hidden sm:inline">{isDarkMode ? 'Sáng' : 'Tối'}</span>
-                        </button>
-                    </div>
-                </header>
-                
-                 <div className="space-y-6">
-                    {gamePhase === 'GAME_OVER' && gameOverMessage ? (
-                         <div className="mt-8">
-                            <GameOver message={gameOverMessage} onRestart={handleRestart} />
-                         </div>
-                    ) : (
-                        <>
-                            <Dashboard stats={stats} />
-                            
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 md:gap-4 p-4 bg-white/50 dark:bg-stone-800/50 backdrop-blur-sm rounded-xl shadow-lg">
-                                <button onClick={() => setActiveModal('relationships')} className="flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-stone-700 dark:hover:bg-stone-600 dark:text-stone-200">
-                                    <UsersIcon className="w-5 h-5" />
-                                    <span className="hidden sm:inline">Triều Thần</span>
+                {!gameStarted ? (
+                    <MainMenu 
+                        onNewGame={handleNewGame}
+                        onLoadGame={triggerLoadGame}
+                        onShowTutorial={() => setActiveModal('tutorial')}
+                        onShowDonate={() => setActiveModal('donate')}
+                        toggleDarkMode={toggleDarkMode}
+                        isDarkMode={isDarkMode}
+                    />
+                ) : (
+                    <>
+                        <header className="text-center mb-8">
+                            <div className="flex justify-center items-center gap-4">
+                               <FlourishIcon className="w-12 h-12 text-red-900 dark:text-amber-300"/>
+                               <h1 className="text-4xl md:text-5xl font-extrabold font-serif-display text-red-900/90 dark:text-amber-200/90 tracking-wider">Thiên Tử Nhà Trần</h1>
+                               <FlourishIcon className="w-12 h-12 text-red-900 dark:text-amber-300 scale-x-[-1]"/>
+                            </div>
+                            <div className="flex items-center justify-center gap-4">
+                                <p className="text-stone-600 dark:text-stone-400 font-semibold text-lg mt-2">Năm {year}</p>
+                                <InvasionCountdown currentYear={year} nextInvasionYear={nextMongolInvasionYear} />
+                            </div>
+                            <div className="flex justify-center items-center gap-2 md:gap-4 mt-4 flex-wrap">
+                                <button onClick={saveGame} disabled={gamePhase === 'GAME_OVER'} className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 text-sm disabled:bg-stone-400 dark:disabled:bg-stone-600 dark:disabled:text-stone-400 disabled:cursor-not-allowed dark:bg-amber-700 dark:hover:bg-amber-800">Lưu Game</button>
+                                <button onClick={triggerLoadGame} disabled={gamePhase === 'GAME_OVER'} className="bg-stone-600 hover:bg-stone-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 text-sm disabled:bg-stone-400 dark:disabled:bg-stone-600 dark:disabled:text-stone-400 disabled:cursor-not-allowed dark:bg-stone-700 dark:hover:bg-stone-800">Tải Game</button>
+                                <button onClick={() => setActiveModal('tutorial')} className="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 text-sm flex items-center gap-2 dark:bg-sky-700 dark:hover:bg-sky-600">
+                                  <QuestionMarkCircleIcon className="w-5 h-5"/>
+                                  <span className="hidden sm:inline">Hướng Dẫn</span>
                                 </button>
-                                <button onClick={() => setActiveModal('harem')} className="flex items-center justify-center gap-2 bg-rose-100 hover:bg-rose-200 text-rose-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-rose-900/50 dark:hover:bg-rose-800/50 dark:text-rose-200">
-                                    <HeartIcon className="w-5 h-5" />
-                                    <span className="hidden sm:inline">Hậu Cung</span>
+                                <button onClick={() => setActiveModal('donate')} className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 text-sm flex items-center gap-2 dark:bg-amber-600 dark:hover:bg-amber-500">
+                                   <GiftIcon className="w-5 h-5"/>
+                                   <span className="hidden sm:inline">Ủng hộ</span>
                                 </button>
-                                 <button onClick={() => setActiveModal('military')} className="flex items-center justify-center gap-2 bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-red-900/50 dark:hover:bg-red-800/50 dark:text-red-200">
-                                    <ShieldCheckIcon className="w-5 h-5" />
-                                    <span className="hidden sm:inline">Quân Sự</span>
-                                </button>
-                                <button onClick={() => setActiveModal('succession')} className="flex items-center justify-center gap-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-yellow-900/50 dark:hover:bg-yellow-800/50 dark:text-yellow-200">
-                                    <UserGroupIcon className="w-5 h-5" />
-                                    <span className="hidden sm:inline">Kế Vị</span>
-                                </button>
-                                <button onClick={() => setActiveModal('diplomacy')} className="flex items-center justify-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-green-900/50 dark:hover:bg-green-800/50 dark:text-green-200">
-                                    <GlobeAltIcon className="w-5 h-5" />
-                                    <span className="hidden sm:inline">Ngoại Giao</span>
-                                </button>
-                                <button onClick={() => setActiveModal('aids')} className="flex items-center justify-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-blue-900/50 dark:hover:bg-blue-800/50 dark:text-blue-200">
-                                    <SparklesIcon className="w-5 h-5" />
-                                    <span className="hidden sm:inline">Trợ Giúp</span>
+                                 <button onClick={toggleDarkMode} className="bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-200 font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 text-sm flex items-center gap-2">
+                                   {isDarkMode ? <SunIcon className="w-5 h-5 text-yellow-400"/> : <MoonIcon className="w-5 h-5 text-indigo-500"/>}
+                                   <span className="hidden sm:inline">{isDarkMode ? 'Sáng' : 'Tối'}</span>
                                 </button>
                             </div>
+                        </header>
+                        
+                         <div className="space-y-6">
+                            {gamePhase === 'GAME_OVER' && gameOverMessage ? (
+                                 <div className="mt-8">
+                                    <GameOver message={gameOverMessage} onRestart={handleRestart} />
+                                 </div>
+                            ) : (
+                                <>
+                                    <Dashboard stats={stats} />
+                                    
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 md:gap-4 p-4 bg-white/50 dark:bg-stone-800/50 backdrop-blur-sm rounded-xl shadow-lg">
+                                        <button onClick={() => setActiveModal('relationships')} className="flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-stone-700 dark:hover:bg-stone-600 dark:text-stone-200">
+                                            <UsersIcon className="w-5 h-5" />
+                                            <span className="hidden sm:inline">Triều Thần</span>
+                                        </button>
+                                        <button onClick={() => setActiveModal('harem')} className="flex items-center justify-center gap-2 bg-rose-100 hover:bg-rose-200 text-rose-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-rose-900/50 dark:hover:bg-rose-800/50 dark:text-rose-200">
+                                            <HeartIcon className="w-5 h-5" />
+                                            <span className="hidden sm:inline">Hậu Cung</span>
+                                        </button>
+                                         <button onClick={() => setActiveModal('military')} className="flex items-center justify-center gap-2 bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-red-900/50 dark:hover:bg-red-800/50 dark:text-red-200">
+                                            <ShieldCheckIcon className="w-5 h-5" />
+                                            <span className="hidden sm:inline">Quân Sự</span>
+                                        </button>
+                                        <button onClick={() => setActiveModal('succession')} className="flex items-center justify-center gap-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-yellow-900/50 dark:hover:bg-yellow-800/50 dark:text-yellow-200">
+                                            <UserGroupIcon className="w-5 h-5" />
+                                            <span className="hidden sm:inline">Kế Vị</span>
+                                        </button>
+                                        <button onClick={() => setActiveModal('diplomacy')} className="flex items-center justify-center gap-2 bg-green-100 hover:bg-green-200 text-green-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-green-900/50 dark:hover:bg-green-800/50 dark:text-green-200">
+                                            <GlobeAltIcon className="w-5 h-5" />
+                                            <span className="hidden sm:inline">Ngoại Giao</span>
+                                        </button>
+                                        <button onClick={() => setActiveModal('aids')} className="flex items-center justify-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-blue-900/50 dark:hover:bg-blue-800/50 dark:text-blue-200">
+                                            <SparklesIcon className="w-5 h-5" />
+                                            <span className="hidden sm:inline">Trợ Giúp</span>
+                                        </button>
+                                    </div>
 
-                            <div className="mt-8">
-                                {renderGameContent()}
-                            </div>
-                        </>
-                    )}
-                </div>
+                                    <div className="mt-8">
+                                        {renderGameContent()}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </>
+                )}
                 
+                {/* Modal and file input are rendered outside the conditional to be available everywhere */}
                 <Modal title={getModalTitle()} isOpen={!!activeModal} onClose={() => setActiveModal(null)}>
                     {renderModalContent()}
                 </Modal>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" style={{ display: 'none' }} />
 
             </main>
         </div>

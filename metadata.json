@@ -1,5 +1,6 @@
 {
   "name": "Thiên Tử Nhà Trần - Tran Dynasty Emperor",
   "description": "A nation-building simulation and strategy game where you play as an emperor of the Tran Dynasty in Vietnam. Manage your court, make critical decisions through petitions, defend against invaders, and guide your nation to prosperity.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "prompt": ""
 }
