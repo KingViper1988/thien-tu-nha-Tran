@@ -617,7 +617,7 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
         }));
 
         // Harem relationship decay
-        setHarem(prevHarem => prevHarem.map(c => ({...c, relationship: Math.max(0, c.relationship - 10) })));
+        setHarem(prevHarem => prevHarem.map(c => ({...c, relationship: Math.max(0, c.relationship - 5) })));
 
         // Check for new prince birth from favored consort
         if (favoredConsortId) {
