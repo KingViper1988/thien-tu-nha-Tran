@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { INITIAL_STATS, INITIAL_PETITIONS, INITIAL_OFFICIALS, INITIAL_HAREM, INITIAL_MILITARY, INITIAL_PRINCES, INITIAL_DIPLOMACY, MONGOL_INVASIONS, FlourishIcon, UsersIcon, HeartIcon, SparklesIcon, ShieldCheckIcon, UserGroupIcon, GlobeAltIcon, QuestionMarkCircleIcon, GiftIcon, SunIcon, MoonIcon, KeyIcon } from './constants';
-import type { NationalStat, Stats, Petition, PetitionOption, Official, SaveState, GamePhase, BudgetAllocations, Consort, AidType, Military, Prince, Diplomacy, ActiveModal, NeighboringState as TNeighboringState } from './types';
+import { INITIAL_STATS, INITIAL_PETITIONS, INITIAL_OFFICIALS, INITIAL_HAREM, INITIAL_MILITARY, INITIAL_PRINCES, INITIAL_DIPLOMACY, MONGOL_INVASIONS, INVASION_EVENTS, ACHIEVEMENTS, FlourishIcon, UsersIcon, HeartIcon, SparklesIcon, ShieldCheckIcon, UserGroupIcon, GlobeAltIcon, QuestionMarkCircleIcon, GiftIcon, SunIcon, MoonIcon, KeyIcon, TrophyIcon } from './constants';
+import type { NationalStat, Stats, Petition, PetitionOption, Official, SaveState, GamePhase, BudgetAllocations, Consort, AidType, Military, Prince, Diplomacy, ActiveModal, NeighboringState as TNeighboringState, InvasionEventOption } from './types';
 import { NationalStat as ENationalStat, Ministry, NeighboringState } from './types';
 import Dashboard from './components/Dashboard';
 import RelationshipsDashboard from './components/RelationshipsDashboard';
@@ -20,6 +20,8 @@ import InvasionCountdown from './components/InvasionCountdown';
 import MainMenu from './components/MainMenu';
 import ApiKeySetupModal from './components/ApiKeySetupModal';
 import { generateYearlySummary } from './services/geminiService';
+import InvasionEvent from './components/InvasionEvent';
+import AchievementsPanel from './components/AchievementsPanel';
 
 const YearlyAnnals = ({ summary, onNewYear }: { summary: string; onNewYear: () => void; }) => (
     <div className="bg-amber-50 dark:bg-stone-800/70 border-2 border-red-800/50 dark:border-amber-400/20 rounded-lg p-6 lg:p-8 shadow-lg max-w-3xl mx-auto animate-fade-in">
@@ -82,6 +84,26 @@ const App: React.FC = () => {
         }
         return null;
     });
+    const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
+
+    // New states for yearly actions
+    const [favorUsedThisYear, setFavorUsedThisYear] = useState(false);
+    const [nurtureUsedThisYear, setNurtureUsedThisYear] = useState(false);
+    const [favoredConsortId, setFavoredConsortId] = useState<string | null>(null);
+
+    const unlockAchievement = useCallback((achievementId: string) => {
+        setUnlockedAchievements(prev => {
+            if (prev.includes(achievementId)) {
+                return prev; // Already unlocked
+            }
+            const achievement = ACHIEVEMENTS.find(a => a.id === achievementId);
+            if (achievement) {
+                // Simple alert for now. Could be a more fancy toast notification later.
+                alert(`🏆 Thành tựu Mở khóa: ${achievement.name}`);
+            }
+            return [...prev, achievementId];
+        });
+    }, []);
 
     useEffect(() => {
         if (isDarkMode) {
@@ -123,47 +145,39 @@ const App: React.FC = () => {
     useEffect(() => {
         if (gamePhase === 'GAME_OVER') return;
 
-        // Historical Mongol Invasion Check
-        if (year === nextMongolInvasionYear) {
-            const invasionStrength = 75; // Example strength
-            const outcome = military.strength > invasionStrength 
-                ? `chúng ta đã đẩy lùi thành công quân xâm lược Nguyên Mông!` 
-                : `quân ta đã thất bại, kinh thành chịu tổn thất nặng nề.`;
-            alert(`NĂM ${year} - QUÂN NGUYÊN MÔNG XÂM LƯỢC!\nSau những trận chiến khốc liệt, ${outcome}`);
-            
-            if (military.strength > invasionStrength) {
-                setStats(prev => ({...prev, [ENationalStat.Prestige]: Math.min(100, prev[ENationalStat.Prestige] + 20)}));
-                setMilitary(prev => ({...prev, strength: Math.max(0, prev.strength - 15), morale: Math.max(0, prev.morale - 10)}));
-            } else {
-                setStats(prev => ({
-                    ...prev,
-                    [ENationalStat.Prestige]: Math.max(0, prev[ENationalStat.Prestige] - 25),
-                    [ENationalStat.Security]: Math.max(0, prev[ENationalStat.Security] - 30),
-                    [ENationalStat.Livelihood]: Math.max(0, prev[ENationalStat.Livelihood] - 20),
-                    [ENationalStat.Prosperity]: Math.max(0, prev[ENationalStat.Prosperity] - 20),
-                }));
-                setMilitary(prev => ({...prev, strength: Math.max(0, prev.strength - 30), morale: Math.max(0, prev.morale - 25)}));
-            }
-            const nextIndex = MONGOL_INVASIONS.indexOf(year) + 1;
-            setNextMongolInvasionYear(MONGOL_INVASIONS[nextIndex] || null);
-        }
-
-        // Standard Game Over Checks
         if (year >= 1225 + 70) {
             setGamePhase('GAME_OVER');
-            setGameOverMessage({
-                title: "Thiên Thu Thịnh Thế (A Glorious Era)",
-                text: `Bệ hạ đã trị vì trong 70 năm, đưa Đại Việt đến một thời kỳ hoàng kim. Tên của ngài sẽ được ghi vào sử sách như một trong những vị vua anh minh nhất. (You have ruled for 70 glorious years, leading Đại Việt into a golden age. Your name will be remembered as one of the wisest emperors.)`
-            });
+            const hasCrownPrince = princes.some(p => p.isCrownPrince);
+            if (hasCrownPrince) {
+                 unlockAchievement('good_ending');
+                 setGameOverMessage({
+                    title: "Thiên Thu Thịnh Thế (A Glorious Era)",
+                    text: `Bệ hạ đã trị vì trong 70 năm, chọn được người kế vị anh minh, đưa Đại Việt đến một thời kỳ hoàng kim. Tên của ngài sẽ được ghi vào sử sách như một trong những vị vua vĩ đại nhất. (You have ruled for 70 glorious years, chosen a wise heir, and led Đại Việt into a golden age. Your name will be remembered as one of the greatest emperors.)`
+                });
+            } else {
+                unlockAchievement('normal_ending');
+                setGameOverMessage({
+                    title: "Triều Đại An Bình (A Peaceful Reign)",
+                    text: `Bệ hạ đã trị vì trong 70 năm, giữ cho xã tắc được thái bình. Tuy nhiên, do chưa chọn được người kế vị xứng đáng, tương lai của Đại Việt vẫn còn là một dấu hỏi. (You have ruled for 70 years and kept the kingdom at peace. However, without a worthy heir, the future of Đại Việt remains uncertain.)`
+                });
+            }
             return;
         }
 
-        const rebelliousCount = Object.values(officials).filter(o => o.relationship <= 20).length;
-        if (rebelliousCount >= 3) {
+        const rebelliousOfficialsCount = Object.values(officials).filter(o => o.relationship <= 20).length;
+        const rebelliousConsortsCount = harem.filter(c => c.relationship === 0).length * 2; // Each 0-relationship consort counts as 2 rebels
+        const totalRebelliousCount = rebelliousOfficialsCount + rebelliousConsortsCount;
+
+        if (totalRebelliousCount >= 3) {
             setGamePhase('GAME_OVER');
+            unlockAchievement('dynasty_falls');
+            let reasonText = "Lòng dân oán thán, các đại thần mưu phản.";
+            if (rebelliousConsortsCount > 0) {
+                reasonText = "Lòng dân oán thán, các đại thần mưu phản và hậu cung bất ổn.";
+            }
             setGameOverMessage({
                 title: "Triều Đại Sụp Đổ (Dynasty Falls)",
-                text: `Lòng dân oán thán, các đại thần mưu phản. Bệ hạ đã bị phế truất do không thể kiểm soát được triều đình. (The court is in turmoil, and the ministers have rebelelled. You have been deposed for failing to control your court.)`
+                text: `${reasonText} Bệ hạ đã bị phế truất do không thể kiểm soát được triều đình. (The court is in turmoil, and the ministers have rebelelled. You have been deposed for failing to control your court.)`
             });
             return;
         }
@@ -180,6 +194,7 @@ const App: React.FC = () => {
                     case ENationalStat.Prestige: reason = "Uy tín của thiên tử không còn, các nước chư hầu nổi dậy, ngoại bang khinh thường. (The emperor's prestige is gone. Vassal states rebel, and foreign powers show contempt.)"; break;
                 }
                 setGamePhase('GAME_OVER');
+                unlockAchievement('dynasty_falls');
                 setGameOverMessage({
                     title: "Triều Đại Sụp Đổ (Dynasty Falls)",
                     text: reason
@@ -187,7 +202,7 @@ const App: React.FC = () => {
                 return;
             }
         }
-    }, [stats, officials, year, gamePhase, military.strength, nextMongolInvasionYear]);
+    }, [stats, officials, year, gamePhase, princes, harem, unlockAchievement]);
 
     const resetGameState = useCallback(() => {
         setYear(1225);
@@ -210,6 +225,10 @@ const App: React.FC = () => {
         setGameOverMessage(null);
         setActiveModal(null);
         setUsedAids([]);
+        setUnlockedAchievements([]);
+        setFavorUsedThisYear(false);
+        setNurtureUsedThisYear(false);
+        setFavoredConsortId(null);
     }, []);
 
     const handleNewGame = useCallback(() => {
@@ -279,8 +298,22 @@ const App: React.FC = () => {
         
         // Add new prince
         if (option.addPrince) {
-            const newPrince: Prince = { ...option.addPrince, id: `prince_${Date.now()}`, age: 0 };
-            setPrinces(prev => [...prev, newPrince]);
+            const motherConsort = harem.length > 0 ? harem[Math.floor(Math.random() * harem.length)] : { name: "Một cung nữ vô danh" };
+            setPrinces(prev => {
+                const newPrince: Prince = { 
+                    ...option.addPrince!, 
+                    mother: motherConsort.name,
+                    id: `prince_${Date.now()}`, 
+                    age: 0,
+                    successionPoints: 0,
+                    isCrownPrince: false,
+                };
+                const newPrinces = [...prev, newPrince];
+                if (newPrinces.length >= 5) {
+                    unlockAchievement('many_children');
+                }
+                return newPrinces;
+            });
         }
         
         // Recruit new official - BUG FIX: Use static key directly.
@@ -295,7 +328,7 @@ const App: React.FC = () => {
         setDecisions(prev => [...prev, { petitionTitle, decisionText: option.text }]);
         setCurrentPetitionIndex(prev => prev + 1);
 
-    }, [currentPetition]);
+    }, [currentPetition, harem, unlockAchievement]);
     
     const handleUseAid = useCallback((aid: AidType, statToBuff: NationalStat) => {
         if(usedAids.includes(aid)) return;
@@ -351,6 +384,51 @@ const App: React.FC = () => {
         }
     }, [stats, officials]);
 
+    const handleFavorConsort = useCallback((consortId: string) => {
+        if (favorUsedThisYear) return;
+        setFavorUsedThisYear(true);
+        setFavoredConsortId(consortId);
+        setHarem(prevHarem => 
+            prevHarem.map(c => 
+                c.id === consortId 
+                    ? { ...c, relationship: Math.min(100, c.relationship + 15) }
+                    : c
+            )
+        );
+    }, [favorUsedThisYear]);
+
+    const handleNurturePrince = useCallback((princeId: string) => {
+        if (nurtureUsedThisYear) return;
+        setNurtureUsedThisYear(true);
+        setPrinces(prevPrinces => {
+            let isCrowning = false;
+            let crownedPrinceId: string | null = null;
+    
+            const updatedPrinces = prevPrinces.map(p => {
+                if (p.id === princeId && !p.isCrownPrince) {
+                    const newPoints = p.successionPoints + 1;
+                    if (newPoints >= 20) {
+                        isCrowning = true;
+                        crownedPrinceId = p.id;
+                        return { ...p, successionPoints: newPoints, isCrownPrince: true };
+                    }
+                    return { ...p, successionPoints: newPoints };
+                }
+                return p;
+            });
+    
+            if (isCrowning) {
+                return updatedPrinces.map(p => {
+                    if (p.id !== crownedPrinceId) {
+                        return { ...p, isCrownPrince: false };
+                    }
+                    return p;
+                });
+            }
+            return updatedPrinces;
+        });
+    }, [nurtureUsedThisYear]);
+
     const handleAttack = useCallback((target: TNeighboringState) => {
         const cost = Math.floor(diplomacy[target].defense * 0.5);
         if (military.strength < cost) {
@@ -368,12 +446,16 @@ const App: React.FC = () => {
                 [ENationalStat.Treasury]: Math.min(100, prev[ENationalStat.Treasury] + 15),
                 [ENationalStat.Prosperity]: Math.min(100, prev[ENationalStat.Prosperity] + 5),
             }));
+            
+            const newYuanCampaigns = target === NeighboringState.Yuan ? military.yuanCampaigns + 1 : military.yuanCampaigns;
+            const newChampaCampaigns = target === NeighboringState.Champa ? military.champaCampaigns + 1 : military.champaCampaigns;
+
             setMilitary(prev => ({
                 ...prev,
                 strength: Math.max(0, prev.strength - Math.floor(cost * 0.8)),
                 morale: Math.max(0, prev.morale - 10),
-                yuanCampaigns: target === NeighboringState.Yuan ? prev.yuanCampaigns + 1 : prev.yuanCampaigns,
-                champaCampaigns: target === NeighboringState.Champa ? prev.champaCampaigns + 1 : prev.champaCampaigns,
+                yuanCampaigns: newYuanCampaigns,
+                champaCampaigns: newChampaCampaigns,
             }));
             setDiplomacy(prev => ({
                 ...prev,
@@ -383,10 +465,17 @@ const App: React.FC = () => {
                 }
             }));
 
-            if (target === NeighboringState.Yuan && military.yuanCampaigns + 1 >= 5) {
-                alert("Ý chí xâm lược của Nhà Nguyên đã bị dập tắt! Các cuộc xâm lược lịch sử sẽ không xảy ra.");
-                setNextMongolInvasionYear(null);
+            if (target === NeighboringState.Yuan && newYuanCampaigns >= 5) {
+                if (nextMongolInvasionYear !== null) {
+                    alert("Ý chí xâm lược của Nhà Nguyên đã bị dập tắt! Các cuộc xâm lược lịch sử sẽ không xảy ra.");
+                    unlockAchievement('preemptive_strike');
+                    setNextMongolInvasionYear(null);
+                }
             }
+            if (target === NeighboringState.Champa && newChampaCampaigns >= 5) {
+                unlockAchievement('pacify_champa');
+            }
+
         } else {
             alert(`Tấn công ${target} THẤT BẠI! Quân ta tổn thất nặng nề.`);
             setMilitary(prev => ({
@@ -395,7 +484,7 @@ const App: React.FC = () => {
                 morale: Math.max(0, prev.morale - 20),
             }));
         }
-    }, [military, diplomacy]);
+    }, [military, diplomacy, unlockAchievement, nextMongolInvasionYear]);
 
     const handleEndYear = useCallback(async () => {
         setIsEndingYear(true);
@@ -440,20 +529,133 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
         setGamePhase('YEAR_END');
     }, [year, decisions, stats, officials, harem, budgetDecisionText, taxRevenueOfTheYear, military, princes, diplomacy]);
 
-    const handleNewYear = useCallback(() => {
-        // Military recovery
-        if (stats[ENationalStat.Security] > 70) {
-            const recovery = Math.floor(stats[ENationalStat.Security] / 20);
-            setMilitary(prev => ({
-                strength: Math.min(100, prev.strength + recovery),
-                morale: Math.min(100, prev.morale + recovery),
-                ...prev
-            }));
+     const handleInvasionDecision = useCallback((option: InvasionEventOption) => {
+        const currentMilitary = military;
+
+        // Calculate battle outcome
+        const playerPower = (currentMilitary.strength + option.strengthModifier) * 0.7 + (currentMilitary.morale + option.moraleModifier) * 0.3;
+        const successChance = Math.max(0.1, Math.min(0.9, playerPower / 85));
+        const isSuccess = Math.random() < successChance;
+
+        const outcome = isSuccess 
+            ? { text: option.winText, effects: option.winEffects }
+            : { text: option.lossText, effects: option.lossEffects };
+            
+        alert(`Kết quả cuộc chiến năm ${year}:\n\n${outcome.text}`);
+
+        if (isSuccess) {
+            if (year === 1258) unlockAchievement('invasion_1_win');
+            if (year === 1285) unlockAchievement('invasion_2_win');
+            if (year === 1288) unlockAchievement('invasion_3_win');
         }
 
-        const taxRevenue = Math.floor(stats[ENationalStat.Prosperity] / 8) + 5;
+        // Combine all effects
+        const allStatEffects: Partial<Stats> = { ...option.baseEffects.stats };
+        for (const key in outcome.effects.stats) {
+            const statKey = key as NationalStat;
+            allStatEffects[statKey] = (allStatEffects[statKey] || 0) + (outcome.effects.stats[statKey] || 0);
+        }
+
+        const allMilitaryEffects: Partial<Military> = { ...option.baseEffects.military };
+        if (outcome.effects.military.strength) {
+             allMilitaryEffects.strength = (allMilitaryEffects.strength || 0) + outcome.effects.military.strength;
+        }
+        if (outcome.effects.military.morale) {
+             allMilitaryEffects.morale = (allMilitaryEffects.morale || 0) + outcome.effects.military.morale;
+        }
+
+        // Apply all effects
+        setStats(prev => {
+            const newStats = { ...prev };
+            for (const [key, change] of Object.entries(allStatEffects)) {
+                newStats[key as NationalStat] = Math.max(0, Math.min(100, newStats[key as NationalStat] + (change || 0)));
+            }
+            return newStats;
+        });
+
+        setMilitary(prev => {
+            const newMilitary = { ...prev };
+            if (allMilitaryEffects.strength) newMilitary.strength += allMilitaryEffects.strength;
+            if (allMilitaryEffects.morale) newMilitary.morale += allMilitaryEffects.morale;
+            newMilitary.strength = Math.max(0, Math.min(100, newMilitary.strength));
+            newMilitary.morale = Math.max(0, Math.min(100, newMilitary.morale));
+            return newMilitary;
+        });
+        
+        // Log the decision for the annals
+        const eventData = INVASION_EVENTS.find(e => e.year === year);
+        setDecisions(prev => [...prev, {
+            petitionTitle: eventData?.title || `Cuộc chiến năm ${year}`,
+            decisionText: `Bệ hạ đã chọn chiến lược: "${option.text}". Kết quả: ${outcome.text}`
+        }]);
+
+        // Advance to the next invasion
+        const currentInvasionIndex = MONGOL_INVASIONS.indexOf(year);
+        if(isSuccess && eventData?.year === 1288) { // Decisive victory at Bach Dang
+             setNextMongolInvasionYear(null);
+        } else {
+             const nextIndex = currentInvasionIndex + 1;
+             setNextMongolInvasionYear(MONGOL_INVASIONS[nextIndex] || null);
+        }
+
+        setGamePhase('POST_INVASION');
+    }, [year, military, unlockAchievement]);
+
+    const handleNewYear = useCallback(() => {
+        // Yearly resource and military recovery based on national stats.
+        
+        // Treasury increases based on Prosperity. +1 Treasury for every 5 Prosperity, max +20.
+        const taxRevenue = Math.min(20, Math.floor(stats[ENationalStat.Prosperity] / 5));
         setStats(prevStats => ({ ...prevStats, [ENationalStat.Treasury]: Math.min(100, prevStats[ENationalStat.Treasury] + taxRevenue) }));
         setTaxRevenueOfTheYear(taxRevenue);
+
+        // Military strength increases based on Security. +1 Strength for every 10 Security, max +10.
+        const militaryRecovery = Math.min(10, Math.floor(stats[ENationalStat.Security] / 10));
+        setMilitary(prev => ({
+            ...prev,
+            strength: Math.min(100, prev.strength + militaryRecovery),
+        }));
+
+        // Harem relationship decay
+        setHarem(prevHarem => prevHarem.map(c => ({...c, relationship: Math.max(0, c.relationship - 10) })));
+
+        // Check for new prince birth from favored consort
+        if (favoredConsortId) {
+            const favoredConsort = harem.find(c => c.id === favoredConsortId);
+            if (favoredConsort && Math.random() < 0.10) { // 10% chance
+                const princeNames = ["Trần Nhật", "Trần Quang", "Trần Đức", "Trần Vĩnh", "Trần Khải", "Trần Quốc", "Trần Hiển", "Trần Minh"];
+                const newPrinceName = princeNames[Math.floor(Math.random() * princeNames.length)];
+                
+                setPrinces(prev => {
+                    const newPrince: Prince = {
+                        id: `prince_${Date.now()}`,
+                        name: newPrinceName,
+                        mother: favoredConsort.name,
+                        age: 0,
+                        successionPoints: 0,
+                        isCrownPrince: false,
+                    };
+                    const newPrinces = [...prev, newPrince];
+                     if (newPrinces.length >= 5) {
+                        unlockAchievement('many_children');
+                    }
+                    alert(`🎉 Chúc mừng Bệ hạ! ${favoredConsort.title} ${favoredConsort.name} đã hạ sinh Hoàng tử ${newPrinceName}!`);
+                    return newPrinces;
+                });
+            }
+        }
+        
+        // Achievement Check: Loyal Court
+        if(Object.values(officials).every(o => o.relationship > 85)) {
+            unlockAchievement('loyal_court');
+        }
+
+        // Reset yearly action trackers
+        setFavorUsedThisYear(false);
+        setNurtureUsedThisYear(false);
+        setFavoredConsortId(null);
+
+        // Advance to the new year
         setYear(prev => prev + 1);
         setYearlySummary(null);
         setCurrentPetitionIndex(0);
@@ -462,10 +664,10 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
         setGamePhase('BUDGETING');
         setBudgetDecisionText(null);
         setPrinces(prevPrinces => prevPrinces.map(p => ({...p, age: p.age + 1})));
-    }, [stats, getAvailablePetitions]);
+    }, [stats, getAvailablePetitions, favoredConsortId, harem, officials, unlockAchievement]);
 
     const saveGame = useCallback(() => {
-        const gameState: SaveState = { year, stats, officials, harem, petitions, currentPetitionIndex, decisions, gamePhase, taxRevenueOfTheYear, usedAids, military, princes, diplomacy, completedPetitionIds, nextMongolInvasionYear };
+        const gameState: SaveState = { year, stats, officials, harem, petitions, currentPetitionIndex, decisions, gamePhase, taxRevenueOfTheYear, usedAids, military, princes, diplomacy, completedPetitionIds, nextMongolInvasionYear, favorUsedThisYear, nurtureUsedThisYear, favoredConsortId, unlockedAchievements };
         const dataStr = JSON.stringify(gameState, null, 2);
         const dataBlob = new Blob([dataStr], { type: "application/json" });
         const url = URL.createObjectURL(dataBlob);
@@ -476,7 +678,7 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-    }, [year, stats, officials, harem, petitions, currentPetitionIndex, decisions, gamePhase, taxRevenueOfTheYear, usedAids, military, princes, diplomacy, completedPetitionIds, nextMongolInvasionYear]);
+    }, [year, stats, officials, harem, petitions, currentPetitionIndex, decisions, gamePhase, taxRevenueOfTheYear, usedAids, military, princes, diplomacy, completedPetitionIds, nextMongolInvasionYear, favorUsedThisYear, nurtureUsedThisYear, favoredConsortId, unlockedAchievements]);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -493,7 +695,11 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
                     setOfficials(savedState.officials || INITIAL_OFFICIALS);
                     setHarem(savedState.harem || INITIAL_HAREM);
                     setMilitary(savedState.military || INITIAL_MILITARY);
-                    setPrinces(savedState.princes || INITIAL_PRINCES);
+                    setPrinces((savedState.princes || INITIAL_PRINCES).map(p => ({
+                        ...p,
+                        successionPoints: p.successionPoints || 0,
+                        isCrownPrince: p.isCrownPrince || false,
+                    })));
                     setDiplomacy(savedState.diplomacy || INITIAL_DIPLOMACY);
                     setPetitions(savedState.petitions);
                     setCurrentPetitionIndex(savedState.currentPetitionIndex || 0);
@@ -503,6 +709,11 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
                     setUsedAids(savedState.usedAids || []);
                     setCompletedPetitionIds(savedState.completedPetitionIds || []);
                     setNextMongolInvasionYear(savedState.nextMongolInvasionYear !== undefined ? savedState.nextMongolInvasionYear : MONGOL_INVASIONS[0]);
+                    setFavorUsedThisYear(savedState.favorUsedThisYear || false);
+                    setNurtureUsedThisYear(savedState.nurtureUsedThisYear || false);
+                    setFavoredConsortId(savedState.favoredConsortId || null);
+                    setUnlockedAchievements(savedState.unlockedAchievements || []);
+
                     setYearlySummary(null);
                     setIsEndingYear(false);
                     setGameStarted(true);
@@ -524,14 +735,15 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
     const renderModalContent = () => {
         switch(activeModal) {
             case 'relationships': return <RelationshipsDashboard officials={officials} treasury={stats[ENationalStat.Treasury]} onBribe={handleBribeOfficial} />;
-            case 'harem': return <HaremDashboard harem={harem} />;
+            case 'harem': return <HaremDashboard harem={harem} onFavorConsort={handleFavorConsort} favorUsedThisYear={favorUsedThisYear} />;
             case 'military': return <MilitaryPanel military={military} officials={Object.values(officials)} />;
-            case 'succession': return <SuccessionPanel princes={princes} />;
+            case 'succession': return <SuccessionPanel princes={princes} onNurturePrince={handleNurturePrince} nurtureUsedThisYear={nurtureUsedThisYear} />;
             case 'diplomacy': return <DiplomacyPanel diplomacy={diplomacy} military={military} onAttack={handleAttack} />;
             case 'aids': return <AidsPanel usedAids={usedAids} onUseAid={handleUseAid} />;
             case 'tutorial': return <TutorialPanel />;
             case 'donate': return <DonationPanel />;
             case 'apiKey': return <ApiKeySetupModal currentKey={apiKey} onKeyUpdate={handleApiKeyUpdate} onClose={() => setActiveModal(null)} />;
+            case 'achievements': return <AchievementsPanel allAchievements={ACHIEVEMENTS} unlockedIds={unlockedAchievements} />;
             default: return null;
         }
     };
@@ -547,6 +759,7 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
             case 'tutorial': return "Hướng Dẫn Chơi";
             case 'donate': return "Ủng Hộ Tác Giả";
             case 'apiKey': return "Thiết lập API Key";
+            case 'achievements': return "Thành Tựu";
             default: return "";
         }
     };
@@ -555,10 +768,27 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
         if (gamePhase === 'BUDGETING') {
             return <BudgetAllocation treasury={stats[ENationalStat.Treasury]} onConfirm={handleConfirmBudget} taxRevenue={taxRevenueOfTheYear}/>;
         }
+
+        if (gamePhase === 'POST_INVASION') {
+             return <CourtSession petition={null} onDecision={() => {}} onEndYear={handleEndYear} isEndingYear={isEndingYear} />;
+        }
+        
         if (gamePhase === 'COURT_SESSION' || gamePhase === 'YEAR_END') {
              if (yearlySummary) {
                 return <YearlyAnnals summary={yearlySummary} onNewYear={handleNewYear} />;
             }
+
+            const invasionEventData = INVASION_EVENTS.find(e => e.year === year);
+            if (gamePhase === 'COURT_SESSION' && invasionEventData) {
+                return (
+                    <InvasionEvent
+                        eventData={invasionEventData}
+                        advisor={officials[invasionEventData.advisor]}
+                        onDecision={handleInvasionDecision}
+                    />
+                );
+            }
+
             const showCourtSession = currentPetitionIndex < 4 && currentPetition;
             return <CourtSession petition={showCourtSession ? currentPetition : null} onDecision={handleDecision} onEndYear={handleEndYear} isEndingYear={isEndingYear} />;
         }
@@ -598,6 +828,10 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
                                   <QuestionMarkCircleIcon className="w-5 h-5"/>
                                   <span className="hidden sm:inline">Hướng Dẫn</span>
                                 </button>
+                                <button onClick={() => setActiveModal('achievements')} className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 text-sm flex items-center gap-2 dark:bg-yellow-600 dark:hover:bg-yellow-500">
+                                    <TrophyIcon className="w-5 h-5"/>
+                                    <span className="hidden sm:inline">Thành Tựu</span>
+                                </button>
                                 <button onClick={() => setActiveModal('donate')} className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-300 text-sm flex items-center gap-2 dark:bg-amber-600 dark:hover:bg-amber-500">
                                    <GiftIcon className="w-5 h-5"/>
                                    <span className="hidden sm:inline">Ủng hộ</span>
@@ -618,7 +852,7 @@ Dựa vào những thông tin trên, hãy viết một đoạn ghi chép trong B
                                 <>
                                     <Dashboard stats={stats} />
                                     
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 md:gap-4 p-4 bg-white/50 dark:bg-stone-800/50 backdrop-blur-sm rounded-xl shadow-lg">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4 p-4 bg-white/50 dark:bg-stone-800/50 backdrop-blur-sm rounded-xl shadow-lg">
                                         <button onClick={() => setActiveModal('relationships')} className="flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-200 dark:bg-stone-700 dark:hover:bg-stone-600 dark:text-stone-200">
                                             <UsersIcon className="w-5 h-5" />
                                             <span className="hidden sm:inline">Triều Thần</span>

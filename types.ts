@@ -64,6 +64,8 @@ export interface Prince {
     name: string;
     age: number;
     mother: string; // Name of the consort mother
+    successionPoints: number;
+    isCrownPrince?: boolean;
 }
 
 export type Stats = {
@@ -100,8 +102,8 @@ export interface PetitionOption {
     relationshipEffects?: { [officialKey: string]: number };
     addConsort?: Omit<Consort, 'id'>;
     recruitOfficial?: { key: string, official: Official };
-    addPrince?: Omit<Prince, 'id' | 'age'>;
-    militaryEffects?: Partial<Military>;
+    addPrince?: Omit<Prince, 'id' | 'age' | 'successionPoints' | 'isCrownPrince'>;
+    militaryEffects?: Partial<Pick<Military, 'strength' | 'morale'>>;
     diplomacyEffects?: { [key in NeighboringState]?: number }; // Change only relationship
 }
 
@@ -115,14 +117,49 @@ export interface Petition {
     trigger?: (stats: Stats, diplomacy: Diplomacy, princes: Prince[], harem: Consort[]) => boolean; // Optional trigger condition
 }
 
+export interface InvasionEventOption {
+    text: string;
+    description: string;
+    strengthModifier: number;
+    moraleModifier: number;
+    baseEffects: {
+        stats: Partial<Stats>;
+        military: Partial<Pick<Military, 'strength' | 'morale'>>;
+    };
+    winText: string;
+    lossText: string;
+    winEffects: {
+        stats: Partial<Stats>;
+        military: Partial<Pick<Military, 'strength' | 'morale'>>;
+    };
+    lossEffects: {
+        stats: Partial<Stats>;
+        military: Partial<Pick<Military, 'strength' | 'morale'>>;
+    };
+}
+
+export interface InvasionEventData {
+    year: number;
+    title: string;
+    description: string;
+    advisor: keyof typeof import('./constants').INITIAL_OFFICIALS;
+    options: InvasionEventOption[];
+}
+
 export type BudgetAllocations = {
     [key in Ministry]: number;
 };
 
-export type GamePhase = 'BUDGETING' | 'COURT_SESSION' | 'YEAR_END' | 'GAME_OVER';
+export type GamePhase = 'BUDGETING' | 'COURT_SESSION' | 'POST_INVASION' | 'YEAR_END' | 'GAME_OVER';
 
-export type ActiveModal = 'relationships' | 'harem' | 'aids' | 'military' | 'succession' | 'diplomacy' | 'tutorial' | 'donate' | 'apiKey' | null;
+export type ActiveModal = 'relationships' | 'harem' | 'aids' | 'military' | 'succession' | 'diplomacy' | 'tutorial' | 'donate' | 'apiKey' | 'achievements' | null;
 
+export interface Achievement {
+    id: string;
+    name: string;
+    description: string;
+    icon: React.FC<React.SVGProps<SVGSVGElement>>;
+}
 
 export interface SaveState {
     year: number;
@@ -140,4 +177,8 @@ export interface SaveState {
     diplomacy: Diplomacy;
     completedPetitionIds: number[];
     nextMongolInvasionYear: number | null;
+    favorUsedThisYear?: boolean;
+    nurtureUsedThisYear?: boolean;
+    favoredConsortId?: string | null;
+    unlockedAchievements?: string[];
 }

@@ -23,7 +23,7 @@ export const generateYearlySummary = async (prompt: string): Promise<string> => 
     try {
         const client = getAiClient();
         const response: GenerateContentResponse = await client.models.generateContent({
-            model: "gemini-2.5-flash-preview-04-17",
+            model: "gemini-2.5-flash",
             contents: prompt,
             config: {
                 systemInstruction: "You are a wise and formal court scribe (Sử quan) for the Tran Dynasty in 13th-century Vietnam. Write in a respectful, slightly archaic, and literary Vietnamese style suitable for royal annals. Your task is to summarize the emperor's year based on the provided decisions.",

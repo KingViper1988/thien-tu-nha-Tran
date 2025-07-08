@@ -1,6 +1,6 @@
 
 import React from 'react';
-import type { Stats, Official, Petition, Consort, Military, Diplomacy, Prince, BudgetAllocations } from './types';
+import type { Stats, Official, Petition, Consort, Military, Diplomacy, Prince, BudgetAllocations, InvasionEventData, Achievement } from './types';
 import { NationalStat, Personality, Faction, ConsortRank, AidType, NeighboringState, Ministry } from './types';
 
 // Icons - New clean, duotone style
@@ -52,6 +52,12 @@ export const SwordIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <path d="M21.75 3.75a.75.75 0 0 0-1.06-.002L18.44 5.998a.75.75 0 0 0 .002 1.06l1.25 1.25a.75.75 0 0 0 1.06-.002l2.25-2.25a.75.75 0 0 0-.002-1.06l-1.25-1.25Z M9 15.75l-3.33-3.33a.75.75 0 0 0-1.06 1.06l3.33 3.33-1.06 1.06a.75.75 0 0 0 0 1.06l.5.5a.75.75 0 0 0 1.06 0l1.06-1.06 3.33 3.33a.75.75 0 0 0 1.06-1.06L10.06 16.81l1.06-1.06a.75.75 0 0 0 0-1.06l-.5-.5a.75.75 0 0 0-1.06 0l-1.06 1.06Z" className="text-gray-600 dark:text-gray-300" />
     </DuotoneIcon>
 );
+export const StarIcon = (props: React.SVGProps<SVGSVGElement> & { title?: string }) => (
+    <DuotoneIcon {...props}>
+        <path fillRule="evenodd" clipRule="evenodd" d="M10.788 3.21c.448-1.077 2.016-1.077 2.464 0l2.094 5.043a1.18 1.18 0 0 0 .894.65l5.297.77c1.17.17 1.636 1.62.79 2.446l-3.833 3.736a1.18 1.18 0 0 0-.342 1.043l.905 5.275c.2 1.166-.99 2.05-2.053 1.5l-4.735-2.49a1.18 1.18 0 0 0-1.1 0l-4.735 2.49c-1.063.55-2.253-.334-2.053-1.5l.905-5.275a1.18 1.18 0 0 0-.342-1.043L.823 12.118c-.846-.826-.38-2.276.79-2.446l5.297-.77a1.18 1.18 0 0 0 .894-.65L10.788 3.21Z" className="text-yellow-400 dark:text-yellow-300" />
+    </DuotoneIcon>
+);
+
 
 // Menu Icons
 export const FlourishIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -130,6 +136,17 @@ export const KeyIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <path d="M15.75 5.25a3 3 0 0 0-3-3M15.75 5.25v3.75m-3.75-3.75h3.75m-3.75 0a3 3 0 0 0-5.69 1.458L6.208 9.75a.75.75 0 0 0 .658 1.042l.39.065a3 3 0 0 1 2.33 2.33l.065.39a.75.75 0 0 0 1.042.658l2.542-.424a3 3 0 0 0 1.458-5.69Z" className="text-gray-600 dark:text-gray-300" />
     </DuotoneIcon>
 );
+export const TrophyIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <DuotoneIcon {...props}>
+        <path d="M16.5 8.25V6a2.25 2.25 0 0 0-2.25-2.25H9.75A2.25 2.25 0 0 0 7.5 6v2.25" className="text-amber-300 dark:text-amber-500 opacity-70"/>
+        <path d="M15.75 12.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM12 12.75v6.75m0 0H9m3 0h3M3.375 12a8.625 8.625 0 0 1 17.25 0" className="text-amber-500 dark:text-amber-400"/>
+    </DuotoneIcon>
+);
+export const LockClosedIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+    </svg>
+);
 
 
 // INITIAL GAME STATE
@@ -191,6 +208,165 @@ export const AID_INFO = {
 
 export const DONATION_QR_CODE_URL = "https://i.postimg.cc/XqG3ks80/514931043-709128918566321-4959936952977707907-n.jpg";
 
+export const INVASION_EVENTS: InvasionEventData[] = [
+    {
+        year: 1258,
+        title: "Quân Nguyên Xâm Lược Lần Thứ Nhất",
+        description: "Tâu bệ hạ, 3 vạn kỵ binh Mông Cổ do Ngột Lương Hợp Thai chỉ huy đã tiến vào biên giới. Chúng rất thiện chiến và hung hãn. Chúng ta nên đối phó thế nào?",
+        advisor: 'TRAN_HUNG_DAO',
+        options: [
+            {
+                text: "Thực hiện 'Vườn không nhà trống', rút về Thăng Long.",
+                description: "Ta sẽ rút lui để bảo toàn lực lượng, khiến cho địch không có lương thảo, dần dần suy yếu. Nhưng dân chúng sẽ chịu khổ.",
+                strengthModifier: -10,
+                moraleModifier: 15,
+                baseEffects: {
+                    stats: { [NationalStat.Livelihood]: -15, [NationalStat.Prosperity]: -10 },
+                    military: { strength: -5 }
+                },
+                winText: "Kế sách thành công! Quân Nguyên thiếu lương thực, dần suy yếu và bị ta phản công đẩy lùi. Ta đã bảo vệ được xã tắc!",
+                lossText: "Quân Nguyên quá mạnh, chúng vẫn chiếm được Thăng Long dù thiếu thốn. Kinh thành bị cướp phá nặng nề!",
+                winEffects: {
+                    stats: { [NationalStat.Prestige]: 20, [NationalStat.Security]: 10 },
+                    military: { morale: 10 }
+                },
+                lossEffects: {
+                    stats: { [NationalStat.Prestige]: -25, [NationalStat.Security]: -30, [NationalStat.Livelihood]: -20 },
+                    military: { strength: -25, morale: -20 }
+                }
+            },
+            {
+                text: "Chặn đánh địch ngay tại biên giới.",
+                description: "Thể hiện sức mạnh của Đại Việt, đối đầu trực diện với quân xâm lược. Đây là một canh bạc lớn.",
+                strengthModifier: 15,
+                moraleModifier: 5,
+                baseEffects: {
+                    stats: { [NationalStat.Treasury]: -10 },
+                    military: {}
+                },
+                winText: "Chiến thắng vang dội! Ta đã đập tan quân địch ngay từ đầu, thể hiện uy vũ của Đại Việt.",
+                lossText: "Thất bại thảm hại! Kỵ binh Mông Cổ quá mạnh, quân ta bị đánh tan, mở đường cho chúng tiến sâu vào nội địa.",
+                winEffects: {
+                    stats: { [NationalStat.Prestige]: 25, [NationalStat.Security]: 15 },
+                    military: { strength: -15, morale: 20 }
+                },
+                lossEffects: {
+                    stats: { [NationalStat.Prestige]: -30, [NationalStat.Security]: -35, [NationalStat.Livelihood]: -15 },
+                    military: { strength: -35, morale: -30 }
+                }
+            }
+        ]
+    },
+    {
+        year: 1285,
+        title: "Quân Nguyên Xâm Lược Lần Thứ Hai",
+        description: "Thoát Hoan, con trai của Hốt Tất Liệt, dẫn 50 vạn quân ồ ạt tấn công. Thế giặc cực mạnh, nhiều người đã đầu hàng. Trần Hưng Đạo xin bệ hạ quyết sách!",
+        advisor: 'TRAN_HUNG_DAO',
+        options: [
+            {
+                text: "Tạm thời rút lui, bảo toàn lực lượng để phản công sau.",
+                description: "Tránh đối đầu trực diện, đưa hoàng tộc và quân chủ lực rút về phía Nam, chờ đợi thời cơ phản công tại Vạn Kiếp, Hàm Tử.",
+                strengthModifier: 5,
+                moraleModifier: 20,
+                baseEffects: {
+                    stats: { [NationalStat.Prestige]: -10, [NationalStat.Security]: -10, [NationalStat.Livelihood]: -10 },
+                    military: {}
+                },
+                winText: "Phản công thần tốc! Quân ta từ các mặt Hàm Tử, Chương Dương đánh úp, khiến quân Nguyên đại bại phải rút chạy. Một chiến thắng lịch sử!",
+                lossText: "Không thể lật ngược tình thế! Dù đã phản công nhưng quân địch quá đông, quân ta không thể chống đỡ. Đại Việt rơi vào nguy khốn.",
+                winEffects: {
+                    stats: { [NationalStat.Prestige]: 30, [NationalStat.Security]: 20 },
+                    military: { strength: -20, morale: 25 }
+                },
+                lossEffects: {
+                    stats: { [NationalStat.Prestige]: -30, [NationalStat.Security]: -40, [NationalStat.Livelihood]: -25 },
+                    military: { strength: -40, morale: -35 }
+                }
+            },
+            {
+                text: "Tử thủ Thăng Long, quyết một trận sống mái.",
+                description: "Dồn toàn lực để bảo vệ kinh thành. Nếu Thăng Long thất thủ, tinh thần quân và dân sẽ sụp đổ.",
+                strengthModifier: 15,
+                moraleModifier: -5,
+                baseEffects: {
+                    stats: { [NationalStat.Treasury]: -15 },
+                    military: {}
+                },
+                winText: "Thăng Long đứng vững! Quân ta đã anh dũng chiến đấu, bẻ gãy mọi đợt tấn công của giặc, buộc chúng phải lui quân.",
+                lossText: "Thăng Long thất thủ! Kinh thành chìm trong biển lửa, quân ta tổn thất nặng nề. Triều đình phải di tản trong hỗn loạn.",
+                winEffects: {
+                    stats: { [NationalStat.Prestige]: 20, [NationalStat.Security]: 10 },
+                    military: { strength: -25, morale: 15 }
+                },
+                lossEffects: {
+                    stats: { [NationalStat.Prestige]: -35, [NationalStat.Security]: -45, [NationalStat.Livelihood]: -30 },
+                    military: { strength: -45, morale: -40 }
+                }
+            }
+        ]
+    },
+    {
+        year: 1288,
+        title: "Quân Nguyên Xâm Lược Lần Thứ Ba",
+        description: "Thoát Hoan một lần nữa quay lại, lần này chúng chuẩn bị một đội thuyền lương lớn để tránh vết xe đổ. Trần Khánh Dư đề xuất một kế hoạch thủy chiến táo bạo.",
+        advisor: 'TRAN_KHANH_DU',
+        options: [
+            {
+                text: "Dùng kế cắm cọc trên sông Bạch Đằng.",
+                description: "Nghe theo kế của Trần Hưng Đạo, cho quân đóng cọc gỗ lim bịt sắt nhọn xuống lòng sông Bạch Đằng, nhử đoàn thuyền lương của giặc vào bãi cọc khi thủy triều lên rồi đánh úp.",
+                strengthModifier: 25,
+                moraleModifier: 20,
+                baseEffects: {
+                    stats: { [NationalStat.Treasury]: -10, [NationalStat.Security]: 5 },
+                    military: {}
+                },
+                winText: "Chiến thắng Bạch Đằng Giang lẫy lừng! Toàn bộ đoàn thuyền lương của giặc bị tiêu diệt, Thoát Hoan phải chui vào ống đồng trốn về nước. Mối họa xâm lược chấm dứt!",
+                lossText: "Kế hoạch thất bại! Quân Nguyên đã phát hiện ra bãi cọc và tránh được. Quân ta bị tổn thất nặng trong trận thủy chiến không cân sức.",
+                winEffects: {
+                    stats: { [NationalStat.Prestige]: 40, [NationalStat.Security]: 25, [NationalStat.Prosperity]: 10 },
+                    military: { strength: -10, morale: 30 }
+                },
+                lossEffects: {
+                    stats: { [NationalStat.Prestige]: -30, [NationalStat.Security]: -30, [NationalStat.Livelihood]: -15 },
+                    military: { strength: -30, morale: -30 }
+                }
+            },
+            {
+                text: "Tập trung vào đường bộ, bỏ qua thủy chiến.",
+                description: "Cho rằng thủy quân của địch quá mạnh, ta nên tập trung phòng thủ trên bộ, để mặc cho đoàn thuyền lương của chúng.",
+                strengthModifier: -10,
+                moraleModifier: -15,
+                baseEffects: {
+                    stats: {},
+                    military: {}
+                },
+                winText: "Phòng thủ thành công! Dù vất vả nhưng ta đã chặn được các hướng tấn công trên bộ của giặc.",
+                lossText: "Thảm họa! Có lương thực, quân Nguyên duy trì sức chiến đấu mạnh mẽ và dai dẳng. Quân ta dần bị áp đảo trên mọi mặt trận.",
+                winEffects: {
+                    stats: { [NationalStat.Prestige]: 10, [NationalStat.Security]: 5 },
+                    military: { strength: -20, morale: 5 }
+                },
+                lossEffects: {
+                    stats: { [NationalStat.Prestige]: -40, [NationalStat.Security]: -40, [NationalStat.Livelihood]: -20 },
+                    military: { strength: -40, morale: -35 }
+                }
+            }
+        ]
+    }
+];
+
+export const ACHIEVEMENTS: Achievement[] = [
+    { id: 'invasion_1_win', name: 'Đông Bộ Đầu, Phá Giặc Nguyên', description: 'Đánh bại cuộc xâm lược Mông-Nguyên lần thứ nhất (1258).', icon: SwordIcon },
+    { id: 'invasion_2_win', name: 'Hàm Tử, Chương Dương', description: 'Đánh bại cuộc xâm lược Mông-Nguyên lần thứ hai (1285).', icon: SwordIcon },
+    { id: 'invasion_3_win', name: 'Bạch Đằng Vang Dội', description: 'Nhấn chìm hạm đội địch trong trận Bạch Đằng, kết thúc cuộc xâm lược Mông-Nguyên lần thứ ba (1288).', icon: SwordIcon },
+    { id: 'preemptive_strike', name: 'Tiên Phát Chế Nhân', description: 'Dập tắt ý chí xâm lược của Nhà Nguyên trước khi chúng kịp hành động.', icon: ShieldCheckIcon },
+    { id: 'pacify_champa', name: 'Bình Định Chiêm Thành', description: 'Buộc Chiêm Thành phải cúi đầu khuất phục sau nhiều chiến dịch thắng lợi.', icon: ShieldCheckIcon },
+    { id: 'many_children', name: 'Đông Cung Hưng Vượng', description: 'Có được 5 vị hoàng tử, đảm bảo tương lai cho vương triều.', icon: UserGroupIcon },
+    { id: 'loyal_court', name: 'Trăm Quan Quy Phục', description: 'Cả triều đình đều một lòng trung thành với bệ hạ.', icon: UsersIcon },
+    { id: 'good_ending', name: 'Thiên Thu Thịnh Thế', description: 'Trị vì 70 năm và chọn được người kế vị xứng đáng, mở ra một thời kỳ hoàng kim.', icon: StarIcon },
+    { id: 'normal_ending', name: 'Triều Đại An Bình', description: 'Trị vì 70 năm trong hòa bình nhưng tương lai vẫn còn bỏ ngỏ.', icon: StarIcon },
+    { id: 'dynasty_falls', name: 'Triều Đại Sụp Đổ', description: 'Mất đi thiên mệnh và để triều đại sụp đổ.', icon: CloseIcon },
+];
 
 // PETITIONS
 export const INITIAL_PETITIONS: Petition[] = [
@@ -236,9 +412,9 @@ export const INITIAL_PETITIONS: Petition[] = [
         description: "Tâu bệ hạ, quân đội ở biên giới phía Bắc đang thiếu quân lương và quân trang. Xin bệ hạ cấp ngân khố để ổn định lòng quân.",
         from: INITIAL_OFFICIALS['TRAN_HUNG_DAO'],
         options: [
-            { text: "Cấp phát đầy đủ.", effects: { [NationalStat.Security]: 10, [NationalStat.Treasury]: -15, [NationalStat.Livelihood]: -5 }, relationshipEffects: { 'TRAN_HUNG_DAO': 10 } },
+            { text: "Cấp phát đầy đủ.", effects: { [NationalStat.Security]: 10, [NationalStat.Treasury]: -15, [NationalStat.Livelihood]: -5 }, relationshipEffects: { 'TRAN_HUNG_DAO': 10 }, militaryEffects: { morale: 5 } },
             { text: "Cấp một nửa, yêu cầu tiết kiệm.", effects: { [NationalStat.Security]: 5, [NationalStat.Treasury]: -8 }, relationshipEffects: { 'TRAN_HUNG_DAO': -5 } },
-            { text: "Bác bỏ. Yêu cầu quân đội tự túc.", effects: { [NationalStat.Security]: -10, [NationalStat.Prestige]: -5 }, relationshipEffects: { 'TRAN_HUNG_DAO': -15 } },
+            { text: "Bác bỏ. Yêu cầu quân đội tự túc.", effects: { [NationalStat.Security]: -10, [NationalStat.Prestige]: -5 }, relationshipEffects: { 'TRAN_HUNG_DAO': -15 }, militaryEffects: { morale: -10 } },
         ],
     },
     {
@@ -363,8 +539,8 @@ export const INITIAL_PETITIONS: Petition[] = [
         trigger: (stats, diplomacy, princes, harem) => harem.length > 0,
         unique: true,
         options: [
-            { text: "Đặt tên là Trần Anh.", effects: { [NationalStat.Livelihood]: 5, [NationalStat.Prestige]: 5 }, addPrince: { name: "Trần Anh", mother: INITIAL_HAREM[0].name } },
-            { text: "Đặt tên là Trần Uy.", effects: { [NationalStat.Security]: 5, [NationalStat.Prestige]: 5 }, addPrince: { name: "Trần Uy", mother: INITIAL_HAREM[0].name } },
+            { text: "Đặt tên là Trần Anh.", effects: { [NationalStat.Livelihood]: 5, [NationalStat.Prestige]: 5 }, addPrince: { name: "Trần Anh", mother: "Phi tần" } },
+            { text: "Đặt tên là Trần Uy.", effects: { [NationalStat.Security]: 5, [NationalStat.Prestige]: 5 }, addPrince: { name: "Trần Uy", mother: "Phi tần" } },
         ]
     },
     {
@@ -736,7 +912,7 @@ export const INITIAL_PETITIONS: Petition[] = [
         from: INITIAL_OFFICIALS['TRAN_THU_DO'],
         unique: true,
         options: [
-            { text: "Phong cho một chức tước nhỏ để an抚 lòng người.", effects: { [NationalStat.Prestige]: 5, [NationalStat.Livelihood]: 5 }, relationshipEffects: { 'TRAN_THU_DO': -5 } },
+            { text: "Phong cho một chức tước nhỏ để an ủi lòng người.", effects: { [NationalStat.Prestige]: 5, [NationalStat.Livelihood]: 5 }, relationshipEffects: { 'TRAN_THU_DO': -5 } },
             { text: "Đưa về kinh thành giám sát chặt chẽ.", effects: { [NationalStat.Security]: 5 }, relationshipEffects: { 'TRAN_THU_DO': 5 } },
             { text: "Mối nguy tiềm tàng. Cần phải loại bỏ.", effects: { [NationalStat.Security]: 10, [NationalStat.Prestige]: -10 }, relationshipEffects: { 'TRAN_THU_DO': 10 } },
         ]
